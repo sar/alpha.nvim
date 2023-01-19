@@ -19,12 +19,14 @@ local default_header = {
     },
 }
 
+local leader = "SPC"
+
 --- @param sc string
 --- @param txt string
---- @param keybind string optional
---- @param keybind_opts table optional
+--- @param keybind string? optional
+--- @param keybind_opts table? optional
 local function button(sc, txt, keybind, keybind_opts)
-    local sc_ = sc:gsub("%s", ""):gsub("SPC", "<leader>")
+    local sc_ = sc:gsub("%s", ""):gsub(leader, "<leader>")
 
     local opts = {
         position = "left",
@@ -42,7 +44,7 @@ local function button(sc, txt, keybind, keybind_opts)
 
     local function on_press()
         local key = vim.api.nvim_replace_termcodes(keybind .. "<Ignore>", true, false, true)
-        vim.api.nvim_feedkeys(key, "normal", true)
+        vim.api.nvim_feedkeys(key, "t", false)
     end
 
     return {
@@ -73,7 +75,7 @@ local function icon(fn)
     return nwd.get_icon(fn, ext, { default = true })
 end
 
-local function file_button(fn, sc, short_fn)
+local function file_button(fn, sc, short_fn,autocd)
     short_fn = if_nil(short_fn, fn)
     local ico_txt
     local fb_hl = {}
@@ -92,8 +94,9 @@ local function file_button(fn, sc, short_fn)
     else
         ico_txt = ""
     end
-    local file_button_el = button(sc, ico_txt .. short_fn, "<cmd>e " .. fn .. " <CR>")
-    local fn_start = short_fn:match(".*/")
+    local cd_cmd = (autocd and " | cd %:p:h" or "")
+    local file_button_el = button(sc, ico_txt .. short_fn, "<cmd>e " .. fn .. cd_cmd .." <CR>")
+    local fn_start = short_fn:match(".*[/\\]")
     if fn_start ~= nil then
         table.insert(fb_hl, { "Comment", #ico_txt - 2, #fn_start + #ico_txt - 2 })
     end
@@ -107,11 +110,12 @@ local mru_opts = {
     ignore = function(path, ext)
         return (string.find(path, "COMMIT_EDITMSG")) or (vim.tbl_contains(default_mru_ignore, ext))
     end,
+    autocd = false
 }
 
 --- @param start number
---- @param cwd string optional
---- @param items_number number optional number of items to generate, default = 10
+--- @param cwd string? optional
+--- @param items_number number? optional number of items to generate, default = 10
 local function mru(start, cwd, items_number, opts)
     opts = opts or mru_opts
     items_number = if_nil(items_number, 10)
@@ -140,7 +144,7 @@ local function mru(start, cwd, items_number, opts)
         else
             short_fn = fnamemodify(fn, ":~")
         end
-        local file_button_el = file_button(fn, tostring(i + start - 1), short_fn)
+        local file_button_el = file_button(fn, tostring(i + start - 1), short_fn,opts.autocd)
         tbl[i] = file_button_el
     end
     return {
@@ -178,7 +182,7 @@ local section = {
             {
                 type = "group",
                 val = function()
-                    return { mru(0) }
+                    return { mru(10) }
                 end,
             },
         },
@@ -192,7 +196,7 @@ local section = {
             {
                 type = "group",
                 val = function()
-                    return { mru(10, vim.fn.getcwd()) }
+                    return { mru(0, vim.fn.getcwd()) }
                 end,
                 opts = { shrink_margin = false },
             },
@@ -216,8 +220,8 @@ local config = {
         section.header,
         { type = "padding", val = 2 },
         section.top_buttons,
-        section.mru,
         section.mru_cwd,
+        section.mru,
         { type = "padding", val = 1 },
         section.bottom_buttons,
         section.footer,
@@ -226,9 +230,10 @@ local config = {
         margin = 3,
         redraw_on_resize = false,
         setup = function()
-            vim.cmd([[
-            autocmd alpha_temp DirChanged * lua require('alpha').redraw()
-            ]])
+            vim.api.nvim_create_autocmd('DirChanged', {
+                pattern = '*',
+                callback = function () require('alpha').redraw() end,
+            })
         end,
     },
 }
@@ -237,11 +242,13 @@ return {
     icon = icon,
     button = button,
     file_button = file_button,
-    nvim_web_devicons = nvim_web_devicons,
     mru = mru,
     mru_opts = mru_opts,
     section = section,
     config = config,
+    -- theme config
+    nvim_web_devicons = nvim_web_devicons,
+    leader = leader,
     -- deprecated
     opts = config,
 }

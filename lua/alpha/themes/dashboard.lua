@@ -1,5 +1,16 @@
 local if_nil = vim.F.if_nil
 
+local default_terminal = {
+    type = "terminal",
+    command = nil,
+    width = 69,
+    height = 8,
+    opts = {
+        redraw = true,
+        window_config = {},
+    },
+}
+
 local default_header = {
     type = "text",
     val = {
@@ -26,12 +37,14 @@ local footer = {
     },
 }
 
+local leader = "SPC"
+
 --- @param sc string
 --- @param txt string
---- @param keybind string optional
---- @param keybind_opts table optional
+--- @param keybind string? optional
+--- @param keybind_opts table? optional
 local function button(sc, txt, keybind, keybind_opts)
-    local sc_ = sc:gsub("%s", ""):gsub("SPC", "<leader>")
+    local sc_ = sc:gsub("%s", ""):gsub(leader, "<leader>")
 
     local opts = {
         position = "center",
@@ -47,8 +60,8 @@ local function button(sc, txt, keybind, keybind_opts)
     end
 
     local function on_press()
-        local key = vim.api.nvim_replace_termcodes(sc_ .. "<Ignore>", true, false, true)
-        vim.api.nvim_feedkeys(key, "normal", false)
+        local key = vim.api.nvim_replace_termcodes(keybind or sc_ .. "<Ignore>", true, false, true)
+        vim.api.nvim_feedkeys(key, "t", false)
     end
 
     return {
@@ -76,6 +89,7 @@ local buttons = {
 }
 
 local section = {
+    terminal = default_terminal,
     header = default_header,
     buttons = buttons,
     footer = footer,
@@ -98,6 +112,8 @@ return {
     button = button,
     section = section,
     config = config,
+    -- theme config
+    leader = leader,
     -- deprecated
     opts = config,
 }

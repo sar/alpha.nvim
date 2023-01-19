@@ -5,7 +5,7 @@ CONTENTS                                                        *alpha-contents*
 
     INTRO .......................................... |alpha-intro|
     COMMANDS ....................................... |alpha-commands|
-    OPTIONS ........................................ |alpha-options|
+    CONFIGURATION .................................. |alpha-configuration|
     AUTOCMD ........................................ |alpha-autocmd|
     COLORS ......................................... |alpha-colors|
     EXAMPLE ........................................ |alpha-example|
@@ -13,7 +13,7 @@ CONTENTS                                                        *alpha-contents*
 ==============================================================================
 INTRO                                                              *alpha-intro*
 
-alpha is a plugin that shows a customizable greeter screen when neovim is
+alpha is a plugin that shows a programmable greeter screen when neovim is
 launched.
 
 ==============================================================================
@@ -29,7 +29,7 @@ CONFIGURATION                                              *alpha-configuration*
 
 the following is documentation for the types alpha uses for configuration
 
-config: 
+config:
 >
  config = {
     -- required
@@ -41,13 +41,13 @@ config:
     -- optional
     opts = {
         -- number: how much space to pad on the sides of the screen
-        margin = 0 
+        margin = 0
 
         -- theme-specific setup,
         -- ran once before the first draw
         setup = function
 
-        -- when true, 
+        -- when true,
         -- use 'noautocmd' when setting 'alpha' buffer local options.
         -- this can help performance, but it will prevent the
         -- FileType autocmd from firing, which may break integration
@@ -59,7 +59,7 @@ config:
 <
 button:
 >
- { 
+ {
     -- required
 
     -- element type
@@ -95,7 +95,7 @@ button:
 text:
 >
 
- { 
+ {
     -- required
 
     -- element type
@@ -134,6 +134,29 @@ group:
     }
  }
 <
+terminal:
+>
+ -- note: require'alpha.term' must be called
+ -- after require'alpha'
+ {
+    -- required
+    type = "terminal"
+    command = "string" -- the shell command to run
+    -- command size can be fixed, or calculated by mutating these
+    width = 0 -- number
+    height = 0 -- number
+
+    -- optional
+    opts = {
+        -- turns 'false' after the command is run
+        -- when redraw = true alpha will rerun the command
+        -- on the next redraw
+        redraw = true
+        -- see :h nvim_open_win {config} parameter
+        window_config = {}
+    }
+ }
+<
 
 A theme may supply predefined widgets like buttons, headers, etc that
 you can use to customize the theme by updating its opts table
@@ -143,14 +166,17 @@ COLORS                                                            *alpha-colors*
 
 Highlighting is handled internally by the neovim api.
 
-You can highlight a button shortcut by supplying a highlight group to the 
-button option x.opt.hl_shortcut
+Most elements accept `opts.hl = "hl_group"` or an array of
+`{'hl_group', start_col, end_col}`
 
-You can highlight most elements by supplying an array of
-{'hl_group', start_col, end_col}
+for multiline elements, you supply a 2 dimensional array of
+`{'hl_group', start_col, end_col}`
 
-for multiline elements, you supply an array of an array of
-{'hl_group', start_col, end_col}
+You can highlight a button shortcut by supplying a highlight group to the
+option `x.opt.hl_shortcut`
+
+the builtin themes currently highlight with builtin highlight groups
+like `Number` and `Keyword`
 
 ==============================================================================
 AUTOCMDS                                                        *alpha-autocmds*
@@ -159,7 +185,7 @@ alpha supports the following autocmds
 - `autocmd User AlphaReady`
 
 there is an option to use *:noautocmd* when setting alpha's buffer local options
-see *alpha-configuration*
+see |alpha-configuration|
 
 ==============================================================================
 EXAMPLE                                                          *alpha-example*
@@ -202,7 +228,7 @@ Example with the startify theme:
 >
     use {
         "goolord/alpha-nvim",
-        requires = { 'kyazdani42/nvim-web-devicons' },
+        requires = { 'nvim-tree/nvim-web-devicons' },
         config = function ()
             local alpha = require'alpha'
             local startify = require'alpha.themes.startify'
@@ -251,12 +277,26 @@ FAQ                                                                  *alpha-faq*
 How to work with indentLine plugin?~
 
     Disable the plugin while in alpha:
-  >
+>
     let g:indentLine_fileTypeExclude = ['alpha']
 
 How to disable the tabline in alpha buffer?~
   >
     autocmd User AlphaReady set showtabline=0 | autocmd BufUnload <buffer> set showtabline=2
+
+How do I make a theme with no buttons?~
+
+    alpha needs to know where to place the cursor, falling back to {1,0}
+    negatively impacted performance, so if you want to use a theme with no
+    buttons, either create an empty button
+>
+    { type = "button", val = "" }
+<
+    or arbitrarily pick an element of some other type change to
+>
+    el.type = "button"
+<
+    as the sole possible cursor position for your theme
 
 ==============================================================================
 

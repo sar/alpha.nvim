@@ -1,5 +1,5 @@
 # α alpha-nvim
-`alpha` is a fast and fully customizable greeter for neovim.
+`alpha` is a fast and fully programmable greeter for neovim.
 
 share or snipe some custom themes @ https://github.com/goolord/alpha-nvim/discussions/16
 
@@ -10,7 +10,7 @@ With packer:
 ```lua
 use {
     'goolord/alpha-nvim',
-    requires = { 'kyazdani42/nvim-web-devicons' },
+    requires = { 'nvim-tree/nvim-web-devicons' },
     config = function ()
         require'alpha'.setup(require'alpha.themes.startify'.config)
     end
@@ -20,7 +20,7 @@ use {
 ```lua
 require "paq" {
     "goolord/alpha-nvim";
-    "kyazdani42/nvim-web-devicons";
+    "nvim-tree/nvim-web-devicons";
 }
 require'alpha'.setup(require'alpha.themes.startify'.config)
 ```
@@ -39,7 +39,7 @@ use {
 ```lua
 require "paq" {
     "goolord/alpha-nvim";
-    "kyazdani42/nvim-web-devicons";
+    "nvim-tree/nvim-web-devicons";
 }
 require'alpha'.setup(require'alpha.themes.dashboard'.config)
 ```
@@ -53,7 +53,7 @@ to customize the buttons, see :h alpha-example
 ## Elevator pitch
 alpha is really a general purpose neovim ui library with some conveniences for writing a greeter ui.
 it has a functional, data-oriented api design. themes are expressed entirely as data, which is what makes
-alpha "fully customizable". alpha is also the fastest greeter I've benchmarked (which is why I daily drive it myself!).
+alpha "fully programmable". alpha is also the fastest greeter I've benchmarked (which is why I daily drive it myself!).
 
 ## Profiling Results
 ![benchmark](https://user-images.githubusercontent.com/24906808/131830001-31523c86-fee2-4f90-b23d-4bd1e152a385.png)
